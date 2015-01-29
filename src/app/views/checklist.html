@@ -1,0 +1,59 @@
+<main class="container">
+    <div class="progress-header">
+        <h3 class="col-md-8">Project: <b>{{ Check.project.name }}</b></h3>
+        <div class="row">
+            <div class="col-md-10">
+                <div class="progress" ng-init="Check.updateProgress()">
+                    <div class="progress-bar" style="width: {{ Check.progress }}%;">
+                        {{ Check.progress | number: 1}}%
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+            <div class="col-md-1">
+                <div class="btn btn-xs btn-danger pull-right" ng-click="Check.confirm = !Check.confirm">
+                    <i class="fa fa-white fa-trash"></i> <span ng-bind="!Check.confirm ? 'Delete Project' : 'Are you sure?'">Remove Project</span>
+                    <div ng-if="Check.confirm">
+                        <button class="btn btn-xs btn-success">NO</button>
+                        <button class="btn btn-xs btn-primary" ng-click="Check.clearAll()">YES</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-8">
+            <button class="btn btn-primary btn-sm pull-right" ng-click="Check.completed = !Check.completed">
+                <i ng-class="Check.completed ? 'fa-check-square' : 'fa-square'" class="fa fa-white"></i> Toogle completed
+            </button>
+            <ul>
+                <li ng-repeat="(group, items) in Check.project.todos">
+                    <h3>{{ group }}</h3>
+                    <ul class="list">
+                        <li ng-repeat="item in items" ng-hide="Check.completed && item.done" ng-class="{'completed' : item.done, 'example': item.code}" ng-mouseenter="item.showCode = true" ng-mouseleave="item.showCode = false">
+                            <label>
+                                <input type="checkbox" ng-model="item.done" ng-change="Check.updateProgress()">{{ item.name }}
+                            </label>
+                            <p class="note" ng-bind-html="item.note"></p>
+                            <pre ng-if="item.code" ng-show="item.showCode"><code ng-bind="item.code"></code></pre>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="col-md-4">
+            <h3>My Todo</h3>
+            <ul class="list my-todo">
+                <li ng-repeat="item in Check.project.myTodos" ng-hide="Check.completed && item.done" ng-class="{'completed' : item.done}">
+                    <label>
+                        <input type="checkbox" ng-model="item.done" ng-change="Check.updateProgress()">{{ item.name }}
+                    </label>
+                </li>
+            </ul>
+            <input class="form-control" type="text" ng-model="Check.newEntry" placeholder="add new todo..." ng-keyup="$event.keyCode == 13 && Check.addNewEntry(Check.newEntry)">
+            <hr>
+            <h3>Notes</h3>
+            <textarea class="notepad" ng-model="Check.project.notes"></textarea>
+        </div>
+    </div>
+</main>

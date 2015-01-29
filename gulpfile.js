@@ -135,7 +135,9 @@ gulp.task('style', function() {
  * Move views files from src to public
  */
 gulp.task('views', function(){
-    return gulp.src('src/app/views/**/*.html')
+    gulp.src('public/views/*.html', { read: false }) // much faster
+        .pipe($.rimraf());
+    return gulp.src('src/app/views/*.html')
         .pipe(gulp.dest('public/views'));
 
 });

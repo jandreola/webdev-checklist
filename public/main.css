@@ -428,16 +428,11 @@ th {
   -webkit-filter: blur(0);
 }
 
-#primary-header {
-  position: fixed;
+.progress-header {
   background-color: rgba(240, 240, 255, 0.95);
-  z-index: 2;
-  width: 100%;
-  box-shadow: 0 0 10px #ccc;
-}
-
-main {
-  padding-top: 120px;
+  box-shadow: 0 0 5px #ccc;
+  padding: 15px;
+  margin-bottom: 15px;
 }
 
 ul {

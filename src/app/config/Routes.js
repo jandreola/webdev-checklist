@@ -13,6 +13,11 @@ function Routes($routeProvider, $locationProvider, VIEWS) {
             controller  : 'HomeController',
             controllerAs: 'Home'
         })
+        .when('/checklist/:checklistId', {
+            templateUrl : VIEWS + 'checklist.html',
+            controller  : 'ChecklistController',
+            controllerAs: 'Check'
+        })
         .otherwise({
             redirectTo: '/'
         });

@@ -1,4 +1,4 @@
-function TodoService(){
+function TodoService($location, localStorageService){
 
     var todoModels = {
         'webdev': {
@@ -49,14 +49,66 @@ function TodoService(){
     };
    
     var methods = {
-        getModel: getTodoModel,
-        progress: updateProgress
+        progress: updateProgress,
+        getProjects: getProjects,
+        get: getSingleProject,
+        getTypes: getProjectTypes,
+        checkAvailability: checkAvailability,
+        create: createProject
     };
 
     return methods;
 
+    function createProject(project){
+        var newProject = project;
+        newProject.id = getNewId();
+        newProject.todos = getTodoModel(newProject.type);
+        newProject.created_at = new Date();
+
+        localStorageService.set(newProject.id, newProject);
+
+        $location.path('/checklist/' + newProject.id);
+
+    }
+
+    function getNewId(){
+        return '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function getSingleProject(id){
+        return localStorageService.get(id);
+    }
+
+    function checkAvailability(name){
+        var keys = localStorageService.keys();
+        for (var i = 0; i < keys.length; i++) {
+            var n = localStorageService.get(keys[i]);
+            if(n.name === name) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     function getTodoModel(type){
+
         return todoModels[type];
+    }
+
+    function getProjects(){
+        var keys = localStorageService.keys(),
+            projects = [];
+        for (var i = 0; i < keys.length; i++) {
+            var project = localStorageService.get(keys[i]);
+            projects[i] = {id: project.id, name: project.name};
+        }
+
+        return projects;
+    }
+
+    function getProjectTypes(){
+        return Object.keys(todoModels);
     }
 
     function updateProgress(data){

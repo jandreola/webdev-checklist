@@ -1,99 +1,4 @@
 angular.module('app', ['ngAnimate', 'ngCookies', 'ngResource', 'ngRoute', 'ngSanitize', 'ui.bootstrap', 'LocalStorageModule']);
-function BaseController() {
-    var vm = this;
-
-    
-}
-
-angular
-    .module('app')
-    .controller('BaseController', BaseController);
-function HomeController($scope, $location, localStorageService, TodoService) {
-    var vm = this;
-
-    // Initialize a blank project
-    vm.project = {};
-    vm.project.myTodos = [];
-
-
-    // Check if there is any project stored
-    vm.storedProjects = localStorageService.keys();
-
-    // Switch which modal will pop up
-    vm.modal = true;
-    if(vm.storedProjects.length) {
-        vm.existingModal = true;
-    } else {
-        vm.newModal = true;
-    }
-
-    // view model functions
-    vm.updateModel = function(type){
-        vm.project.todos = TodoService.getModel(type);
-    };
-
-    vm.updateProgress = function(){
-        vm.progress = TodoService.progress(vm.project);
-    };
-
-    vm.addNewEntry = function(entry){
-        vm.newEntry = '';
-        vm.project.myTodos.push({name: entry, done: false});
-        vm.updateProgress();
-    };
-
-    vm.save = function(){
-        if(vm.project.name) {
-            localStorageService.set(vm.project.name, vm.project);
-        }
-    };
-
-    vm.clearAll = function(){
-         localStorageService.remove(vm.project.name);
-         $location.path('#!/');
-    };
-
-    vm.loadChecklist = function(checklist){
-        vm.project = localStorageService.get(checklist);
-        vm.updateProgress();
-        vm.modal = false;
-        vm.existingModal = false;
-    };
-
-    vm.newChecklist = function(){
-        vm.modal = true;
-        vm.existingModal = false;
-        vm.newModal = true;
-    };
-
-    vm.createNew = function(newProject){
-        for (var i = 0; i < vm.storedProjects.length; i++) {
-            if (vm.storedProjects[i] === newProject.name) {
-                alert('Project already exists');
-                vm.modal = vm.newModal = true;
-                return false;
-            }
-        }
-        vm.project.name = newProject.name;
-        vm.project.todos = TodoService.getModel(newProject.type);
-        vm.modal = vm.existingModal = vm.newModal = false;
-        vm.save();
-    };
-
-    // Watch for changes on project and save
-    $scope.$watch(angular.bind(this, function (project) {
-        return this.project;
-    }), function(n, o){
-        if(n !== 0) {
-            vm.save();
-        }
-    }, true);
-}
-HomeController.$inject = ['$scope', '$location', 'localStorageService', 'TodoService'];
-
-angular
-    .module('app')
-    .controller('HomeController', HomeController);
 /*
  * Constants can be used in Controllers, Services, Directives, etc
  * it doesn't polute global scope 
@@ -103,7 +8,6 @@ angular
     .constant('API_URL', 'YOUR_API_URL_GOES_HERE')
     .constant('VIEWS', '/views/')
     .constant('CDN_URL', 'YOUR_CDN_URL_GOES_HERE');
-
 function Domains($sceDelegateProvider, API_URL){
 
     /* 
@@ -195,6 +99,11 @@ function Routes($routeProvider, $locationProvider, VIEWS) {
             controller  : 'HomeController',
             controllerAs: 'Home'
         })
+        .when('/checklist/:checklistId', {
+            templateUrl : VIEWS + 'checklist.html',
+            controller  : 'ChecklistController',
+            controllerAs: 'Check'
+        })
         .otherwise({
             redirectTo: '/'
         });
@@ -204,6 +113,93 @@ Routes.$inject = ['$routeProvider', '$locationProvider', 'VIEWS'];
 angular
     .module('app')
     .config(Routes);
+function BaseController($scope, TodoService) {
+    var vm = this;
+
+    $scope.$on('$locationChangeSuccess', function(){
+        vm.storedProjects = TodoService.getProjects();
+    });
+}
+BaseController.$inject = ['$scope', 'TodoService'];
+
+angular
+    .module('app')
+    .controller('BaseController', BaseController);
+function ChecklistController($routeParams, TodoService) {
+    var vm = this;
+
+    var ID = $routeParams.checklistId;
+
+    vm.project = TodoService.get(ID);
+
+    // // Check if there is any project stored
+    // vm.storedProjects = localStorageService.keys();
+
+   
+    // // view model functions
+    // vm.updateProgress = function(){
+    //     vm.progress = TodoService.progress(vm.project);
+    // };
+
+    // vm.addNewEntry = function(entry){
+    //     vm.newEntry = '';
+    //     vm.project.myTodos.push({name: entry, done: false});
+    //     vm.updateProgress();
+    // };
+
+    // vm.save = function(){
+    //     if(vm.project.name) {
+    //         localStorageService.set(vm.project.name, vm.project);
+    //     }
+    // };
+
+    // vm.clearAll = function(){
+    //      localStorageService.remove(vm.project.name);
+    //      $location.path('#!/');
+    // };
+
+    // vm.loadChecklist = function(checklist){
+    //     vm.project = localStorageService.get(checklist);
+    //     vm.updateProgress();
+    // };
+
+    // // Watch for changes on project and save
+    // $scope.$watch(angular.bind(this, function (project) {
+    //     return this.project;
+    // }), function(n, o){
+    //     if(n !== 0) {
+    //         vm.save();
+    //     }
+    // }, true);
+}
+ChecklistController.$inject = ['$routeParams', 'TodoService'];
+
+angular
+    .module('app')
+    .controller('ChecklistController', ChecklistController);
+function HomeController($scope, $location, localStorageService, TodoService) {
+    var vm = this;
+
+    vm.projectTypes = TodoService.getTypes();
+
+    vm.createNew = function(project){
+        if(!checkAvailability(project.name)){
+            if(!confirm('Project name already exists, do you wish to continue?')){
+                return false;
+            }
+        }
+        TodoService.create(project);
+    };
+
+    function checkAvailability(name){
+        return TodoService.checkAvailability(name);
+    }
+}
+HomeController.$inject = ['$scope', '$location', 'localStorageService', 'TodoService'];
+
+angular
+    .module('app')
+    .controller('HomeController', HomeController);
 /**
  * This directive must be used as an attribute
  *                                        |
@@ -331,7 +327,7 @@ angular
     .module('app')
     .factory('LoadingSpinnerService', LoadingSpinnerService);
 
-function TodoService(){
+function TodoService($location, localStorageService){
 
     var todoModels = {
         'webdev': {
@@ -382,14 +378,66 @@ function TodoService(){
     };
    
     var methods = {
-        getModel: getTodoModel,
-        progress: updateProgress
+        progress: updateProgress,
+        getProjects: getProjects,
+        get: getSingleProject,
+        getTypes: getProjectTypes,
+        checkAvailability: checkAvailability,
+        create: createProject
     };
 
     return methods;
 
+    function createProject(project){
+        var newProject = project;
+        newProject.id = getNewId();
+        newProject.todos = getTodoModel(newProject.type);
+        newProject.created_at = new Date();
+
+        localStorageService.set(newProject.id, newProject);
+
+        $location.path('/checklist/' + newProject.id);
+
+    }
+
+    function getNewId(){
+        return '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function getSingleProject(id){
+        return localStorageService.get(id);
+    }
+
+    function checkAvailability(name){
+        var keys = localStorageService.keys();
+        for (var i = 0; i < keys.length; i++) {
+            var n = localStorageService.get(keys[i]);
+            if(n.name === name) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     function getTodoModel(type){
+
         return todoModels[type];
+    }
+
+    function getProjects(){
+        var keys = localStorageService.keys(),
+            projects = [];
+        for (var i = 0; i < keys.length; i++) {
+            var project = localStorageService.get(keys[i]);
+            projects[i] = {id: project.id, name: project.name};
+        }
+
+        return projects;
+    }
+
+    function getProjectTypes(){
+        return Object.keys(todoModels);
     }
 
     function updateProgress(data){
@@ -419,6 +467,7 @@ function TodoService(){
     }
 
 }
+TodoService.$inject = ['$location', 'localStorageService'];
 
 angular
     .module('app')

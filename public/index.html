@@ -22,13 +22,22 @@
         <![endif]--> 
         
     </head>
-
+    
     <body class="" lang="en-US">
 
         <div loader>
             <!-- Loading image goes here -->
         </div>
-
+        <header>
+            <nav class="navbar navbar-default navbar-static-top">
+                <a class="navbar-brand" href="#!/"><i class="fa fa-check"></i> Checklist</a>
+                <ul class="nav navbar-nav pull-right">
+                    <li><a href="#!/"><i class="fa fa-file"></i> <b>New</b> </a></li>
+                    <li><a href="#!/"><b>My Projects</b> <i class="fa fa-arrow-right"></i></a></li>
+                    <li ng-repeat="item in Base.storedProjects"><a href="#!/checklist/{{ item.id }}">{{ item.name }}</a></li>
+                </ul>
+            </nav>
+        </header>
         <div id="content-wrapper" ng-view autoscroll>
 
         </div>
